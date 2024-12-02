@@ -7,7 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <iostream>
+#include <vector>
 
+#define PRIMARY_HEADER_SIZE           6
 
 #define PACKET_VERSION_NUMBER_B       3
 #define PACKET_TYPE_B                 1
@@ -46,11 +49,17 @@ typedef struct PrimaryHeader {
     PacketIdentification    packet_identification;
     PacketSequenceControl   packet_sequence_control;
     uint16_t                packet_data_length;
+    uint16_t                packed_primary_header_word1;
+    uint16_t                packed_primary_header_word2;
+    uint16_t                packed_primary_header_word3;
 } PrimaryHeader;
 
 
 int bitshift(int shift_direction, int shift, uint32_t *value);
 int pack_primary_header(struct PrimaryHeader * p_header);
+int packetize(struct PrimaryHeader * p_header, std::vector <uint8_t> * payload);
+int depacketize(struct PrimaryHeader * up_header, std::vector <uint8_t> * payload);
+
 
 
 

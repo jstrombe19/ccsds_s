@@ -1,5 +1,5 @@
 #include "../inc/main.hpp"
-#include <iostream>
+
 
 int main(int argc, char* argv[]) {
     printf("Hello, world!\n");
@@ -87,35 +87,35 @@ int pack_primary_header(struct PrimaryHeader *prime_header) {
     prime_header->packet_sequence_control.packet_sequence_count &= PACKET_SEQUENCE_COUNT_H;
     prime_header->packet_data_length &= PACKET_DATA_LENGTH_H;
 
-    uint16_t    primary_header_w1 = 0;
-    uint16_t    primary_header_w2 = 0;
-    uint16_t    primary_header_w3 = 0;
+    prime_header->packed_primary_header_word1 = 0;
+    prime_header->packed_primary_header_word2 = 0;
+    prime_header->packed_primary_header_word3 = 0;
 
     constexpr int WORD_LENGTH = 16;
 
-    primary_header_w1 = (prime_header->packet_version_number << (WORD_LENGTH - PACKET_VERSION_NUMBER_B)) |
+    prime_header->packed_primary_header_word1 = (prime_header->packet_version_number << (WORD_LENGTH - PACKET_VERSION_NUMBER_B)) |
                         (prime_header->packet_identification.packet_type << (WORD_LENGTH - (PACKET_VERSION_NUMBER_B + PACKET_TYPE_B))) | 
                         (prime_header->packet_identification.secondary_header_flag << (WORD_LENGTH - (PACKET_VERSION_NUMBER_B + PACKET_TYPE_B + SECONDARY_HEADER_FLAG_B))) | 
                         (prime_header->packet_identification.apid & APID_H);
 
-    primary_header_w2 = (prime_header->packet_sequence_control.sequence_flags << (WORD_LENGTH - SEQUENCE_FLAGS_B)) | 
+    prime_header->packed_primary_header_word2 = (prime_header->packet_sequence_control.sequence_flags << (WORD_LENGTH - SEQUENCE_FLAGS_B)) | 
                         (prime_header->packet_sequence_control.packet_sequence_count & PACKET_SEQUENCE_COUNT_H);
 
-    primary_header_w3 = prime_header->packet_data_length;
+    prime_header->packed_primary_header_word3 = prime_header->packet_data_length;
 
     // debug output summary:
-    std::cout << "primary_header_w1: 0x" << std::hex << primary_header_w1 << std::endl;
-    std::cout << "primary_header_w2: 0x" << std::hex << primary_header_w2 << std::endl;
-    std::cout << "primary_header_w3: 0x" << std::hex << primary_header_w3 << std::endl;
+    std::cout << "prime_header->packed_primary_header_word1: 0x" << std::hex << prime_header->packed_primary_header_word1 << std::endl;
+    std::cout << "prime_header->packed_primary_header_word2: 0x" << std::hex << prime_header->packed_primary_header_word2 << std::endl;
+    std::cout << "prime_header->packed_primary_header_word3: 0x" << std::hex << prime_header->packed_primary_header_word3 << std::endl;
     
     // format packed header as bytes:
     uint8_t packed_header[6];
-    packed_header[0] = (primary_header_w1 >> 8) & BYTE_MASK;
-    packed_header[1] = primary_header_w1 & BYTE_MASK;
-    packed_header[2] = (primary_header_w2 >> 8) & BYTE_MASK;
-    packed_header[3] = primary_header_w2 & BYTE_MASK;
-    packed_header[4] = (primary_header_w3 >> 8) & BYTE_MASK;
-    packed_header[5] = primary_header_w3 & BYTE_MASK;
+    packed_header[0] = (prime_header->packed_primary_header_word1 >> 8) & BYTE_MASK;
+    packed_header[1] = prime_header->packed_primary_header_word1 & BYTE_MASK;
+    packed_header[2] = (prime_header->packed_primary_header_word2 >> 8) & BYTE_MASK;
+    packed_header[3] = prime_header->packed_primary_header_word2 & BYTE_MASK;
+    packed_header[4] = (prime_header->packed_primary_header_word3 >> 8) & BYTE_MASK;
+    packed_header[5] = prime_header->packed_primary_header_word3 & BYTE_MASK;
 
     // display packed header: 
     std::cout << "Packed Header: ";
@@ -127,3 +127,16 @@ int pack_primary_header(struct PrimaryHeader *prime_header) {
     return 0;
 }
 
+
+int packetize(struct PrimaryHeader * p_header, std::vector <uint8_t> * payload) {
+    if ((p_header->packed_primary_header_word1 !> 0) | (p_header->packed_primary_header_word2 !> 0) | (p_header->packed_primary_header_word3 !> 0)) {
+        pack_primary_header(p_header);
+    }
+    
+    return 0;
+};
+
+
+int depacketize(struct PrimaryHeader * up_header, std::vector <uint8_t> * payload) {
+    return 0;
+};
