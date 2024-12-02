@@ -9,7 +9,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <iostream>
+#include <fstream>
 #include <vector>
+#include <iterator>
 
 #define PRIMARY_HEADER_SIZE           6
 

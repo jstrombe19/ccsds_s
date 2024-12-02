@@ -38,9 +38,10 @@ int main(int argc, char* argv[]) {
     p_header.packet_sequence_control.packet_sequence_count = 5973;
     p_header.packet_data_length = 37119;
 
-    pack_primary_header(&p_header, &c_packed_header);
+    // pack_primary_header(&p_header, &c_packed_header);
 
-    packetize(&p_header, &c_packed_header, &payload);
+    std::vector <uint8_t> ccsds_packet = packetize(&p_header, &c_packed_header, &payload);
+    write_to_file(&ccsds_packet);
     
     return 0;
 }
@@ -147,5 +148,13 @@ std::vector <uint8_t> packetize(struct PrimaryHeader * p_header, struct CCSDSPac
 
 
 int depacketize(struct PrimaryHeader * up_header, std::vector <uint8_t> * payload) {
+    return 0;
+};
+
+
+int write_to_file(std::vector <uint8_t> * ccsds_packet) {
+    std::ofstream outputfile("../data/test.txt", std::ios::out | std::ios::binary);
+    outputfile.write(reinterpret_cast<const char *>(ccsds_packet->data()), ccsds_packet->size());
+    outputfile.close();
     return 0;
 };
