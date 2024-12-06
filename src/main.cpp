@@ -174,10 +174,6 @@ int write_to_file(std::vector <uint8_t> * ccsds_packet) {
 
 
 int parse_primary_header(std::vector<uint8_t> * packet, struct CCSDSPackedHeader * c_packed_header) {
-    uint8_t first_byte = packet->data()[0];
-    uint8_t second_byte = packet->data()[1];
-    uint16_t first_word = second_byte << 8 |
-                          first_byte;
 
     uint64_t full_prime_header = static_cast<uint64_t>(packet->data()[0]) << 32 |
                                  static_cast<uint64_t>(packet->data()[1]) << 40 |
@@ -185,10 +181,15 @@ int parse_primary_header(std::vector<uint8_t> * packet, struct CCSDSPackedHeader
                                  static_cast<uint64_t>(packet->data()[3]) << 24 |
                                  static_cast<uint64_t>(packet->data()[4])       |
                                  static_cast<uint64_t>(packet->data()[5]) << 8   ;
+
+    c_packed_header->packed_primary_header_word1 = full_prime_header >> 32 & WORD_MASK;
+    c_packed_header->packed_primary_header_word2 = full_prime_header >> 16 & WORD_MASK;
+    c_packed_header->packed_primary_header_word3 = full_prime_header & WORD_MASK;
                                 
     std::cout << "full_prime_header: " << full_prime_header << std::endl;
+    std::cout << fmt::format("packed_primary_header_word1: 0x{:4x}", c_packed_header->packed_primary_header_word1) << std::endl;
+    std::cout << fmt::format("packed_primary_header_word2: 0x{:4x}", c_packed_header->packed_primary_header_word2) << std::endl;
+    std::cout << fmt::format("packed_primary_header_word3: 0x{:4x}", c_packed_header->packed_primary_header_word3) << std::endl;
     
-    std::cout << "first_word: " << first_word << std::endl;
-
     return 0;
 }

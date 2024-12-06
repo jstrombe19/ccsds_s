@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <iostream>
+#include <fmt/format.h>
 #include <fstream>
 #include <vector>
 #include <iterator>
@@ -33,6 +34,7 @@
 #define PACKET_DATA_LENGTH_H          0xFFFF      //  16 bit
 
 #define BYTE_MASK                     0xFF
+#define WORD_MASK                     0xFFFF
 
 
 typedef struct PacketIdentification {
