@@ -14,6 +14,7 @@
 #include <iterator>
 
 #define PRIMARY_HEADER_SIZE           6
+#define MAX_CCSDS_PACKET_SIZE     65535
 
 #define PACKET_VERSION_NUMBER_B       3
 #define PACKET_TYPE_B                 1
@@ -62,10 +63,12 @@ typedef struct CCSDSPackedHeader {
 
 
 int bitshift(int shift_direction, int shift, uint32_t *value);
-int pack_primary_header(struct PrimaryHeader * p_header, struct CCSDSPackedHeader *c_packed_header);
+int pack_primary_header(struct PrimaryHeader * p_header, struct CCSDSPackedHeader * c_packed_header);
 std::vector <uint8_t> packetize(struct PrimaryHeader * p_header, struct CCSDSPackedHeader * c_packed_header, std::vector <uint8_t> * payload);
-int depacketize(struct PrimaryHeader * up_header, std::vector <uint8_t> * payload);
+int depacketize(std::vector <uint8_t> * packet, struct CCSDSPackedHeader * c_packed_header, std::vector <uint8_t> * payload);
+int unpack_primary_header(struct PrimaryHeader * p_header, struct CCSDSPackedHeader * c_packed_header);
 int write_to_file(std::vector <uint8_t> * ccsds_packet);
+int parse_primary_header(std::vector<uint8_t> * packet, struct CCSDSPackedHeader * c_packed_header);
 
 
 

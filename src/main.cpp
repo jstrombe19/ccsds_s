@@ -36,13 +36,18 @@ int main(int argc, char* argv[]) {
     p_header.packet_identification.apid = 713;
     p_header.packet_sequence_control.sequence_flags = 3;
     p_header.packet_sequence_control.packet_sequence_count = 5973;
-    p_header.packet_data_length = 37119;
+    p_header.packet_data_length = payload.size();
 
     // pack_primary_header(&p_header, &c_packed_header);
 
     std::vector <uint8_t> ccsds_packet = packetize(&p_header, &c_packed_header, &payload);
     write_to_file(&ccsds_packet);
     
+
+    struct CCSDSPackedHeader c_packed_header2 = {};
+    std::vector<uint8_t> v_payload = {};
+    depacketize(&ccsds_packet, &c_packed_header2, &v_payload);
+
     return 0;
 }
 
@@ -147,7 +152,15 @@ std::vector <uint8_t> packetize(struct PrimaryHeader * p_header, struct CCSDSPac
 };
 
 
-int depacketize(struct PrimaryHeader * up_header, std::vector <uint8_t> * payload) {
+int depacketize(std::vector <uint8_t> * packet, struct CCSDSPackedHeader * c_packed_header, std::vector <uint8_t> * payload) {
+
+
+    // iterate over the data in traditional for loop
+    for (size_t i = 0; i < PRIMARY_HEADER_SIZE; ++i) {
+        printf("Byte %ld: %02X\n", i, packet->data()[i]);
+    }
+
+    int prime_header_parse_status = parse_primary_header(packet, c_packed_header);
     return 0;
 };
 
@@ -158,3 +171,24 @@ int write_to_file(std::vector <uint8_t> * ccsds_packet) {
     outputfile.close();
     return 0;
 };
+
+
+int parse_primary_header(std::vector<uint8_t> * packet, struct CCSDSPackedHeader * c_packed_header) {
+    uint8_t first_byte = packet->data()[0];
+    uint8_t second_byte = packet->data()[1];
+    uint16_t first_word = second_byte << 8 |
+                          first_byte;
+
+    uint64_t full_prime_header = static_cast<uint64_t>(packet->data()[0]) << 32 |
+                                 static_cast<uint64_t>(packet->data()[1]) << 40 |
+                                 static_cast<uint64_t>(packet->data()[2]) << 16 |
+                                 static_cast<uint64_t>(packet->data()[3]) << 24 |
+                                 static_cast<uint64_t>(packet->data()[4])       |
+                                 static_cast<uint64_t>(packet->data()[5]) << 8   ;
+                                
+    std::cout << "full_prime_header: " << full_prime_header << std::endl;
+    
+    std::cout << "first_word: " << first_word << std::endl;
+
+    return 0;
+}
