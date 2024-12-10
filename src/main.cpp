@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
     
     std::vector <uint8_t> payload = {0x3b, 0x44, 0x19, 0x2c, 0xaf};
     struct CCSDSPackedHeader c_packed_header = {};
+    struct CCSDSPackedHeaderBytes b_packed_header = {};
     struct PrimaryHeader p_header = {};
     p_header.packet_version_number = 001;
     p_header.packet_identification.packet_type = 1;
@@ -40,7 +41,7 @@ int main(int argc, char* argv[]) {
 
     // pack_primary_header(&p_header, &c_packed_header);
 
-    std::vector <uint8_t> ccsds_packet = packetize(&p_header, &c_packed_header, &payload);
+    std::vector <uint8_t> ccsds_packet = packetize(&p_header, &c_packed_header, &payload, &b_packed_header);
     write_to_file(&ccsds_packet);
     
 
@@ -83,7 +84,7 @@ int bitshift(int shift_direction, int shift, uint32_t *value) {
  * @return int 
  */
 
-int pack_primary_header(struct PrimaryHeader *prime_header, struct CCSDSPackedHeader *c_packed_header) {
+int pack_primary_header(struct PrimaryHeader *prime_header, struct CCSDSPackedHeader *c_packed_header, struct CCSDSPackedHeaderBytes * b_packed_header) {
 
     if(!prime_header) {
         return 1;
@@ -119,18 +120,18 @@ int pack_primary_header(struct PrimaryHeader *prime_header, struct CCSDSPackedHe
     std::cout << "c_packed_header->packed_primary_header_word3: 0x" << std::hex << c_packed_header->packed_primary_header_word3 << std::endl;
     
     // format packed header as bytes:
-    uint8_t packed_header[6];
-    packed_header[0] = (c_packed_header->packed_primary_header_word1 >> 8) & BYTE_MASK;
-    packed_header[1] = c_packed_header->packed_primary_header_word1 & BYTE_MASK;
-    packed_header[2] = (c_packed_header->packed_primary_header_word2 >> 8) & BYTE_MASK;
-    packed_header[3] = c_packed_header->packed_primary_header_word2 & BYTE_MASK;
-    packed_header[4] = (c_packed_header->packed_primary_header_word3 >> 8) & BYTE_MASK;
-    packed_header[5] = c_packed_header->packed_primary_header_word3 & BYTE_MASK;
+    // uint8_t packed_header[6];
+    b_packed_header->packed_primary_header[0] = (c_packed_header->packed_primary_header_word1 >> 8) & BYTE_MASK;
+    b_packed_header->packed_primary_header[1] = c_packed_header->packed_primary_header_word1 & BYTE_MASK;
+    b_packed_header->packed_primary_header[2] = (c_packed_header->packed_primary_header_word2 >> 8) & BYTE_MASK;
+    b_packed_header->packed_primary_header[3] = c_packed_header->packed_primary_header_word2 & BYTE_MASK;
+    b_packed_header->packed_primary_header[4] = (c_packed_header->packed_primary_header_word3 >> 8) & BYTE_MASK;
+    b_packed_header->packed_primary_header[5] = c_packed_header->packed_primary_header_word3 & BYTE_MASK;
 
     // display packed header: 
     std::cout << "Packed Header: ";
     for(int i = 0; i < 6; i++) {
-        printf("%02X", packed_header[i]);
+        printf("%02X", b_packed_header->packed_primary_header[i]);
     }
     std::cout << std::endl;
 
@@ -138,13 +139,13 @@ int pack_primary_header(struct PrimaryHeader *prime_header, struct CCSDSPackedHe
 }
 
 
-std::vector <uint8_t> packetize(struct PrimaryHeader * p_header, struct CCSDSPackedHeader * c_packed_header, std::vector <uint8_t> * payload) {
+std::vector <uint8_t> packetize(struct PrimaryHeader * p_header, struct CCSDSPackedHeader * c_packed_header, std::vector <uint8_t> * payload, struct CCSDSPackedHeaderBytes * b_packed_header) {
     if ((c_packed_header->packed_primary_header_word1 | c_packed_header->packed_primary_header_word2 | c_packed_header->packed_primary_header_word3) == 0) {
-        pack_primary_header(p_header, c_packed_header);
+        pack_primary_header(p_header, c_packed_header, b_packed_header);
     }
 
     std::vector <uint8_t> packet(PRIMARY_HEADER_SIZE + payload->size());
-    memcpy(packet.data(), c_packed_header, PRIMARY_HEADER_SIZE);
+    memcpy(packet.data(), b_packed_header, PRIMARY_HEADER_SIZE);
 
     memcpy(packet.data() + PRIMARY_HEADER_SIZE, payload->data(), payload->size());
 
@@ -161,6 +162,9 @@ int depacketize(std::vector <uint8_t> * packet, struct CCSDSPackedHeader * c_pac
     }
 
     int prime_header_parse_status = parse_primary_header(packet, c_packed_header);
+
+    // memcpy(payload->data(), packet->data()[PRIMARY_HEADER_SIZE], c_packed_header->packed_primary_header_word3);
+
     return 0;
 };
 
@@ -175,12 +179,12 @@ int write_to_file(std::vector <uint8_t> * ccsds_packet) {
 
 int parse_primary_header(std::vector<uint8_t> * packet, struct CCSDSPackedHeader * c_packed_header) {
 
-    uint64_t full_prime_header = static_cast<uint64_t>(packet->data()[0]) << 32 |
-                                 static_cast<uint64_t>(packet->data()[1]) << 40 |
-                                 static_cast<uint64_t>(packet->data()[2]) << 16 |
-                                 static_cast<uint64_t>(packet->data()[3]) << 24 |
-                                 static_cast<uint64_t>(packet->data()[4])       |
-                                 static_cast<uint64_t>(packet->data()[5]) << 8   ;
+    uint64_t full_prime_header = static_cast<uint64_t>(packet->data()[0]) << 40 |
+                                 static_cast<uint64_t>(packet->data()[1]) << 32 |
+                                 static_cast<uint64_t>(packet->data()[2]) << 24 |
+                                 static_cast<uint64_t>(packet->data()[3]) << 16 |
+                                 static_cast<uint64_t>(packet->data()[4]) << 8  |
+                                 static_cast<uint64_t>(packet->data()[5])        ;
 
     c_packed_header->packed_primary_header_word1 = full_prime_header >> 32 & WORD_MASK;
     c_packed_header->packed_primary_header_word2 = full_prime_header >> 16 & WORD_MASK;

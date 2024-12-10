@@ -63,10 +63,14 @@ typedef struct CCSDSPackedHeader {
     uint16_t                packed_primary_header_word3;
 } CCSDSPackedHeader;
 
+typedef struct CCSDSPackedHeaderBytes {
+    uint8_t                 packed_primary_header[6];
+} CCSDSPackedHeaderBytes;
+
 
 int bitshift(int shift_direction, int shift, uint32_t *value);
-int pack_primary_header(struct PrimaryHeader * p_header, struct CCSDSPackedHeader * c_packed_header);
-std::vector <uint8_t> packetize(struct PrimaryHeader * p_header, struct CCSDSPackedHeader * c_packed_header, std::vector <uint8_t> * payload);
+int pack_primary_header(struct PrimaryHeader * p_header, struct CCSDSPackedHeader * c_packed_header, CCSDSPackedHeaderBytes * b_packed_header);
+std::vector <uint8_t> packetize(struct PrimaryHeader * p_header, struct CCSDSPackedHeader * c_packed_header, std::vector <uint8_t> * payload, CCSDSPackedHeaderBytes * b_packed_header);
 int depacketize(std::vector <uint8_t> * packet, struct CCSDSPackedHeader * c_packed_header, std::vector <uint8_t> * payload);
 int unpack_primary_header(struct PrimaryHeader * p_header, struct CCSDSPackedHeader * c_packed_header);
 int write_to_file(std::vector <uint8_t> * ccsds_packet);
