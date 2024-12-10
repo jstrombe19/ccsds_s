@@ -164,6 +164,11 @@ int depacketize(std::vector <uint8_t> * packet, struct CCSDSPackedHeader * c_pac
     int prime_header_parse_status = parse_primary_header(packet, c_packed_header);
 
     // memcpy(payload->data(), packet->data()[PRIMARY_HEADER_SIZE], c_packed_header->packed_primary_header_word3);
+    std::copy((*packet).begin() + PRIMARY_HEADER_SIZE, (*packet).end(), std::back_inserter((*payload)));
+
+    for (size_t i = 0; i < PRIMARY_HEADER_SIZE; ++i) {
+        printf("Unpacked Payload:\nByte %ld: %02X\n", i, payload->data()[i]);
+    }
 
     return 0;
 };

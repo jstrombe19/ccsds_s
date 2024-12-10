@@ -13,6 +13,7 @@
 #include <fstream>
 #include <vector>
 #include <iterator>
+#include <algorithm>
 
 #define PRIMARY_HEADER_SIZE           6
 #define MAX_CCSDS_PACKET_SIZE     65535
