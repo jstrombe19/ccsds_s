@@ -80,7 +80,12 @@ int bitshift(int shift_direction, int shift, uint32_t *value) {
     PacketSequenceControl   packet_sequence_control;
     uint16_t                packet_data_length;
  * 
- * @param prime_header 
+ * This function packs the primary header for a given CCSDS packet. Its packing is based on the data contained in the PrimaryHeader 
+ * struct passed in to the function invocation. This is by design, as this should ultimately live in a loop that handles the case 
+ * where data is larger than the maximum CCSDS packet size. With that consideration, various flags may be set according to the needs 
+ * of the packet - if this is the first packet in a series, for example. 
+ 
+ * @param prime_header, c_packed_header, b_packed_header
  * @return int 
  */
 
@@ -142,6 +147,15 @@ int pack_primary_header(struct PrimaryHeader *prime_header, struct CCSDSPackedHe
 std::vector <uint8_t> packetize(struct PrimaryHeader * p_header, struct CCSDSPackedHeader * c_packed_header, std::vector <uint8_t> * payload, struct CCSDSPackedHeaderBytes * b_packed_header) {
     if ((c_packed_header->packed_primary_header_word1 | c_packed_header->packed_primary_header_word2 | c_packed_header->packed_primary_header_word3) == 0) {
         pack_primary_header(p_header, c_packed_header, b_packed_header);
+    }
+
+    // TODO: handle the case where a payload is larger than the maximum CCSDS packet size
+    if (payload->size() > MAX_CCSDS_PACKET_SIZE - PRIMARY_HEADER_SIZE) {
+        p_header->packet_identification.packet_type = 0;
+        // iterate here, including changing the packet type to indicate first packet, intermediate packets, and last packet
+        pack_primary_header(p_header, c_packed_header, b_packed_header);
+    } else {
+        // payload is smaller than the maximum CCSDS packet size
     }
 
     std::vector <uint8_t> packet(PRIMARY_HEADER_SIZE + payload->size());
